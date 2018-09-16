@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Taohui Ec2 Create Template"
+Resources:
+  TaoHuiEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties: 
+      ImageId: !Ref ImageIdParameter
+      KeyName: !Ref KeyNameParameter
+      InstanceType: !Ref InstanceTypeParameter
+      SecurityGroupIds: 
+        - !Ref TaoHuiEC2SecurityGroup
+      Tags:
+        -
+          Key: "Name"
+          Value: !Sub ${NamePrefixParameter}-ec2-cloudformation
+  TaoHuiEC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub ${NamePrefixParameter}-sg
+      GroupDescription: "Allow http and ssh to client host"
+      SecurityGroupIngress:
+        -
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 202.66.38.130/32
+        -
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 202.66.38.130/32
+  TaoHuiRoute53RecordSet:
+    Type: AWS::Route53::RecordSet
+    Properties: 
+      HostedZoneId: !Ref HostedZoneIdParameter
+      Name: !Sub ${NamePrefixParameter}.aws.9rich.net.
+      TTL: 60
+      Type: A
+      ResourceRecords: 
+        - !GetAtt TaoHuiEC2Instance.PublicIp
+
+Parameters: 
+  InstanceTypeParameter: 
+    Type: String
+    Default: t2.micro
+    AllowedValues: 
+      - t2.micro
+      - m1.small
+      - m1.large
+    Description: Enter t2.micro, m1.small, or m1.large. Default is t2.micro.
+  ImageIdParameter: 
+    Type: String
+    Description: enter an AMI Id
+    Default: "ami-0caba3a62a2418228"
+  KeyNameParameter:
+    Type: String
+    Description: enter key pair name
+    Default: "taohui-ec2-training.keypair"
+  HostedZoneIdParameter:
+    Type: String
+    Description: enter the hosted zone Id
+    Default: "Z2IXTIKRT56617"
+  NamePrefixParameter:
+    Type: String
+    Description: enter the prefix name for your ec2
+    Default: "taohui"
+      
